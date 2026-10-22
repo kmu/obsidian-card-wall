@@ -1,4 +1,4 @@
-const CHROME = 62; // title, padding and border around the body
+const CHROME = 86; // title, footer row, padding and border around the body
 const MIN_BODY = 24;
 const LINE_HEIGHT = 22;
 const CHAR_WIDTH = 7;

@@ -17,12 +17,11 @@
   background: var(--background-primary);
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-m);
-  box-shadow: var(--shadow-s);
   cursor: pointer;
-  transition: transform 0.22s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  transition: transform 0.22s ease, border-color 0.15s ease, opacity 0.15s ease;
 }
 .cw-card:hover {
-  box-shadow: var(--shadow-l);
+  border-color: var(--background-modifier-border-hover);
 }
 .cw-title {
   margin-bottom: 6px;
@@ -48,13 +47,6 @@
   background: linear-gradient(to bottom, transparent, var(--background-primary));
   pointer-events: none;
 }
-.cw-more {
-  display: none;
-  margin-top: 2px;
-  font-size: var(--font-ui-smaller);
-  color: var(--text-accent);
-}
-.cw-clipped .cw-more { display: block; }
 .cw-empty {
   padding: 24px;
   color: var(--text-muted);
@@ -105,27 +97,6 @@
   letter-spacing: 0.08em;
   color: var(--text-muted);
 }
-.cw-pin {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  color: var(--text-faint);
-  background: transparent;
-  box-shadow: none;
-  transition: opacity 0.12s ease;
-}
-.cw-card:hover .cw-pin { opacity: 1; }
-.cw-pin:hover { color: var(--text-normal); }
-.cw-pinned .cw-pin { opacity: 1; color: var(--text-accent); }
-.cw-pinned .cw-pin svg { fill: currentColor; }
-.cw-title { padding-right: 24px; }
 
 /* Card colours: a tint of the hue mixed into the theme background, so every theme stays readable. */
 .cw-card { --cw-bg: var(--background-primary); background: var(--cw-bg); }
@@ -140,10 +111,31 @@
 .cw-color-pink { --cw-hue: #e93d82; --cw-bg: color-mix(in srgb, var(--cw-hue) 22%, var(--background-primary)); }
 .cw-color-gray { --cw-hue: #8b8d98; --cw-bg: color-mix(in srgb, var(--cw-hue) 22%, var(--background-primary)); }
 .cw-card[class*="cw-color-"] { border-color: color-mix(in srgb, var(--cw-hue) 45%, var(--background-modifier-border)); }
-.cw-color {
-  position: absolute;
-  top: 6px;
-  right: 34px;
+
+/* Obsidian only applies this inside .markdown-preview-view; cards render outside it. */
+.cw-body .task-list-item-checkbox,
+.cw-full-body .task-list-item-checkbox {
+  position: relative;
+  top: 0.2em;
+  margin-inline-end: 0.6em;
+}
+
+/* Footer row: "read more" on the left, pin and color on the right. It always takes its height, so cards do not jump on hover. */
+.cw-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 28px;
+  margin-top: 4px;
+}
+.cw-more {
+  visibility: hidden;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-accent);
+}
+.cw-clipped .cw-more { visibility: visible; }
+.cw-actions { display: flex; gap: 2px; }
+.cw-pin, .cw-color {
   width: 26px;
   height: 26px;
   padding: 0;
@@ -156,13 +148,18 @@
   box-shadow: none;
   transition: opacity 0.12s ease;
 }
+.cw-card:hover .cw-pin,
 .cw-card:hover .cw-color { opacity: 1; }
-.cw-color:hover { color: var(--text-normal); }
-.cw-title { padding-right: 58px; }
+.cw-pin:hover, .cw-color:hover { color: var(--text-normal); }
+.cw-pinned .cw-pin { opacity: 1; color: var(--text-accent); }
+.cw-pinned .cw-pin svg { fill: currentColor; }
+
+/* Color picker: a small grid of named tiles. */
 .cw-palette {
   position: fixed;
   z-index: var(--layer-popover);
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, auto);
   gap: 6px;
   padding: 8px;
   background: var(--background-primary);
@@ -171,23 +168,16 @@
   box-shadow: var(--shadow-l);
 }
 .cw-swatch {
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border-radius: 50%;
-  border: 2px solid var(--background-modifier-border);
+  height: auto;
+  padding: 6px 12px;
+  text-align: left;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
   box-shadow: none;
-  background: var(--cw-bg);
+  background: var(--cw-bg, var(--background-primary));
   cursor: pointer;
 }
-.cw-swatch.cw-color-red, .cw-swatch[class*="cw-color-"] { background: color-mix(in srgb, var(--cw-hue) 55%, var(--background-primary)); }
-.cw-swatch-none { background: var(--background-primary); }
-.cw-swatch.is-current { border-color: var(--interactive-accent); }
-
-/* Obsidian only applies this inside .markdown-preview-view; cards render outside it. */
-.cw-body .task-list-item-checkbox,
-.cw-full-body .task-list-item-checkbox {
-  position: relative;
-  top: 0.2em;
-  margin-inline-end: 0.6em;
-}
+.cw-swatch[class*="cw-color-"] { border-color: color-mix(in srgb, var(--cw-hue) 45%, var(--background-modifier-border)); }
+.cw-swatch.is-current { outline: 2px solid var(--interactive-accent); outline-offset: 1px; }

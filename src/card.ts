@@ -57,14 +57,17 @@ export function updateClipped(card: HTMLElement): void {
 export function createCardShell(parent: HTMLElement, file: TFile, maxBodyHeight: number): HTMLElement {
   const card = parent.createDiv({ cls: "cw-card" });
   card.dataset.path = file.path;
-  const pin = card.createEl("button", { cls: "cw-pin clickable-icon", attr: { "aria-label": t("card.pin") } });
-  setIcon(pin, "pin");
-  const color = card.createEl("button", { cls: "cw-color clickable-icon", attr: { "aria-label": t("card.color") } });
-  setIcon(color, "palette");
   card.createDiv({ cls: "cw-title", text: file.basename });
   const body = card.createDiv({ cls: "cw-body markdown-rendered" });
   body.style.maxHeight = `${maxBodyHeight}px`;
-  card.createDiv({ cls: "cw-more", text: t("card.more") });
+
+  const foot = card.createDiv({ cls: "cw-foot" });
+  foot.createSpan({ cls: "cw-more", text: t("card.more") });
+  const actions = foot.createDiv({ cls: "cw-actions" });
+  const color = actions.createEl("button", { cls: "cw-color clickable-icon", attr: { "aria-label": t("card.color") } });
+  setIcon(color, "palette");
+  const pin = actions.createEl("button", { cls: "cw-pin clickable-icon", attr: { "aria-label": t("card.pin") } });
+  setIcon(pin, "pin");
   return card;
 }
 

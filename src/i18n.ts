@@ -15,7 +15,7 @@ const en = {
 
   "wall.empty": "No notes in this Base.",
   "section.pinned": "Pinned",
-  "section.others": "Others",
+  "section.others": "Notes",
 
   "hint.needSort": "Reordering works only when the Base is sorted by “{property}” ascending.",
   "hint.init": "To start reordering, “{property}” will be written to {count} notes.",
@@ -61,7 +61,7 @@ const ja: Record<MessageKey, string> = {
 
   "wall.empty": "この Base にノートがありません。",
   "section.pinned": "ピン留め",
-  "section.others": "その他",
+  "section.others": "ノート",
 
   "hint.needSort": "並べ替えは、Base の並べ替えを「{property}」の昇順にしたときだけできます。",
   "hint.init": "並べ替えを始めるには、{count} 件のノートに「{property}」を書き込みます。",

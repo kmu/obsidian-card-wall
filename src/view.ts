@@ -501,7 +501,7 @@ export class CardWallView extends BasesView {
     for (const choice of choices) {
       const swatch = palette.createEl("button", {
         cls: `cw-swatch ${choice.name ? `cw-color-${choice.name}` : "cw-swatch-none"}`,
-        attr: { "aria-label": choice.label, title: choice.label },
+        text: choice.label,
       });
       if (choice.name === current) swatch.addClass("is-current");
       swatch.addEventListener("click", (evt) => {
