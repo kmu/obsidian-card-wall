@@ -2,6 +2,8 @@
 
 A [Bases](https://help.obsidian.md/bases) view for Obsidian that lays the notes of a Base out as a wall of cards, packed with no gaps. Reorder them by dragging, pin and color them, tick tasks and fix typos without leaving the view.
 
+![Card Wall showing a Base of notes as colored cards, with a Pinned group on top](docs/images/card-wall.png)
+
 ## Features
 
 - **Packed cards.** Each note is a card; cards fill the shortest column, so there are no holes. Long notes are cut at a maximum height with a fade and a "Read more" line; click a card to read the whole note.
