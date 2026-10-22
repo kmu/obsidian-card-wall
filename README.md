@@ -8,7 +8,8 @@ A [Bases](https://help.obsidian.md/bases) view for Obsidian that lays the notes 
 
 - **Packed cards.** Each note is a card; cards fill the shortest column, so there are no holes. Long notes are cut at a maximum height with a fade and a "Read more" line; click a card to read the whole note.
 - **Drag to reorder.** The order is stored in each note's frontmatter (`order`). Dragging changes only the note you moved.
-- **Pin.** Pinned cards move into their own group above the rest (`pinned: true`).
+- **Pin.** Pinned cards move into their own section above the rest (`pinned: true`).
+- **Groups.** If you group the Base (the *Group* menu), every group gets a heading and its own packed cards. Pinned cards from all groups are gathered in the *Pinned* section on top.
 - **Color.** Pick one of nine colors from a palette (`color: yellow`). Colors are tints of your theme, so they stay readable in light and dark.
 - **Tick tasks on the card.** Clicking a checkbox changes that one line in the note.
 - **Edit in place.** In the opened note, "Edit" switches to a plain text box that saves automatically. Frontmatter is never touched.
@@ -26,7 +27,7 @@ A [Bases](https://help.obsidian.md/bases) view for Obsidian that lays the notes 
 - The first setup writes `order` to every note in the view, once, when you press the button.
 - After that, a drag changes only the moved note: it takes the value halfway between its new neighbours (so it may be `227.5`).
 - If neighbours end up with the same value (for example after a sync conflict), only the notes around the drop are renumbered. Notes without an `order` sort last.
-- Pinned and other cards are ordered separately, and cards stay within their group while dragging.
+- Each section (Pinned, and each group) is ordered separately, and cards stay within their section while dragging.
 
 ### Options
 

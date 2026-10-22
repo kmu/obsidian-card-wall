@@ -37,6 +37,13 @@ After rebuilding, turn the plugin off and on in Settings → Community plugins, 
 - [ ] Clicking outside the palette closes it without opening the card underneath; Escape closes it.
 - [ ] Colors stay readable in light and dark themes.
 
+## Groups
+
+- [ ] Grouping the Base (Group menu, or `groupBy` in the `.base` file) gives each group a heading with its own packed cards.
+- [ ] Notes without a value land in a "No value" group at the end.
+- [ ] Pinned notes from every group appear together in "Pinned" on top.
+- [ ] Dragging works inside a group and does nothing across groups.
+
 ## Tasks and editing
 
 - [ ] Clicking a task checkbox on a card changes only that line and does not open the note.

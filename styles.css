@@ -167,7 +167,7 @@
   border-radius: var(--radius-m);
   box-shadow: var(--shadow-l);
 }
-.cw-swatch {
+.cw-palette .cw-swatch {
   height: auto;
   padding: 6px 12px;
   text-align: left;
@@ -179,5 +179,5 @@
   background: var(--cw-bg, var(--background-primary));
   cursor: pointer;
 }
-.cw-swatch[class*="cw-color-"] { border-color: color-mix(in srgb, var(--cw-hue) 45%, var(--background-modifier-border)); }
-.cw-swatch.is-current { outline: 2px solid var(--interactive-accent); outline-offset: 1px; }
+.cw-palette .cw-swatch[class*="cw-color-"] { border-color: color-mix(in srgb, var(--cw-hue) 45%, var(--background-modifier-border)); }
+.cw-palette .cw-swatch.is-current { outline: 2px solid var(--interactive-accent); outline-offset: 1px; }
