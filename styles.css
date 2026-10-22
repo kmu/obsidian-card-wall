@@ -1,0 +1,193 @@
+/* Card Wall — all colours come from Obsidian's theme variables. */
+.cw-root {
+  --cw-gap: 12px;
+  padding: var(--cw-gap);
+}
+.cw-wall {
+  position: relative;
+  width: 100%;
+}
+.cw-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 12px 14px 10px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-s);
+  cursor: pointer;
+  transition: transform 0.22s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+.cw-card:hover {
+  box-shadow: var(--shadow-l);
+}
+.cw-title {
+  margin-bottom: 6px;
+  font-weight: var(--font-semibold);
+  font-size: var(--font-ui-medium);
+  line-height: 1.4;
+  color: var(--text-normal);
+}
+.cw-body {
+  position: relative;
+  overflow: hidden;
+  font-size: var(--font-ui-small);
+  color: var(--text-normal);
+}
+.cw-body > :first-child { margin-top: 0; }
+.cw-body > :last-child { margin-bottom: 0; }
+.cw-body img { max-width: 100%; height: auto; }
+.cw-clipped .cw-body::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 56px;
+  background: linear-gradient(to bottom, transparent, var(--background-primary));
+  pointer-events: none;
+}
+.cw-more {
+  display: none;
+  margin-top: 2px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-accent);
+}
+.cw-clipped .cw-more { display: block; }
+.cw-empty {
+  padding: 24px;
+  color: var(--text-muted);
+}
+.cw-full-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cw-card { transition: none; }
+}
+.cw-hint {
+  padding: 0 var(--cw-gap) 8px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+.cw-dragging {
+  opacity: 0.4;
+}
+.cw-card[draggable="true"] {
+  cursor: grab;
+}
+.cw-editor {
+  width: 100%;
+  min-height: 50vh;
+  resize: vertical;
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-small);
+  line-height: 1.6;
+}
+.cw-save-status {
+  margin-right: auto;
+  align-self: center;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+.cw-full-actions { gap: 8px; }
+.cw-hint { display: flex; align-items: center; gap: 12px; }
+.cw-section-title {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 2px 4px;
+  font-size: var(--font-ui-smaller);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+.cw-pin {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  color: var(--text-faint);
+  background: transparent;
+  box-shadow: none;
+  transition: opacity 0.12s ease;
+}
+.cw-card:hover .cw-pin { opacity: 1; }
+.cw-pin:hover { color: var(--text-normal); }
+.cw-pinned .cw-pin { opacity: 1; color: var(--text-accent); }
+.cw-pinned .cw-pin svg { fill: currentColor; }
+.cw-title { padding-right: 24px; }
+
+/* Card colours: a tint of the hue mixed into the theme background, so every theme stays readable. */
+.cw-card { --cw-bg: var(--background-primary); background: var(--cw-bg); }
+.cw-clipped .cw-body::after { background: linear-gradient(to bottom, transparent, var(--cw-bg)); }
+.cw-color-red { --cw-hue: #e5484d; --cw-bg: color-mix(in srgb, var(--cw-hue) 22%, var(--background-primary)); }
+.cw-color-orange { --cw-hue: #f76b15; --cw-bg: color-mix(in srgb, var(--cw-hue) 22%, var(--background-primary)); }
+.cw-color-yellow { --cw-hue: #e5a800; --cw-bg: color-mix(in srgb, var(--cw-hue) 22%, var(--background-primary)); }
+.cw-color-green { --cw-hue: #30a46c; --cw-bg: color-mix(in srgb, var(--cw-hue) 22%, var(--background-primary)); }
+.cw-color-teal { --cw-hue: #12a594; --cw-bg: color-mix(in srgb, var(--cw-hue) 22%, var(--background-primary)); }
+.cw-color-blue { --cw-hue: #0091ff; --cw-bg: color-mix(in srgb, var(--cw-hue) 22%, var(--background-primary)); }
+.cw-color-purple { --cw-hue: #8e4ec6; --cw-bg: color-mix(in srgb, var(--cw-hue) 22%, var(--background-primary)); }
+.cw-color-pink { --cw-hue: #e93d82; --cw-bg: color-mix(in srgb, var(--cw-hue) 22%, var(--background-primary)); }
+.cw-color-gray { --cw-hue: #8b8d98; --cw-bg: color-mix(in srgb, var(--cw-hue) 22%, var(--background-primary)); }
+.cw-card[class*="cw-color-"] { border-color: color-mix(in srgb, var(--cw-hue) 45%, var(--background-modifier-border)); }
+.cw-color {
+  position: absolute;
+  top: 6px;
+  right: 34px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  color: var(--text-faint);
+  background: transparent;
+  box-shadow: none;
+  transition: opacity 0.12s ease;
+}
+.cw-card:hover .cw-color { opacity: 1; }
+.cw-color:hover { color: var(--text-normal); }
+.cw-title { padding-right: 58px; }
+.cw-palette {
+  position: fixed;
+  z-index: var(--layer-popover);
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-l);
+}
+.cw-swatch {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--background-modifier-border);
+  box-shadow: none;
+  background: var(--cw-bg);
+  cursor: pointer;
+}
+.cw-swatch.cw-color-red, .cw-swatch[class*="cw-color-"] { background: color-mix(in srgb, var(--cw-hue) 55%, var(--background-primary)); }
+.cw-swatch-none { background: var(--background-primary); }
+.cw-swatch.is-current { border-color: var(--interactive-accent); }
+
+/* Obsidian only applies this inside .markdown-preview-view; cards render outside it. */
+.cw-body .task-list-item-checkbox,
+.cw-full-body .task-list-item-checkbox {
+  position: relative;
+  top: 0.2em;
+  margin-inline-end: 0.6em;
+}
