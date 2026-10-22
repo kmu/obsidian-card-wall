@@ -5,7 +5,7 @@ import { columnGeometry, placeSections } from "./masonry";
 import { moveItem } from "./move";
 import { needsInitialization, parseOrder, planWrites, sortByOrder } from "./order";
 import { ColorName, PALETTE, parseColor } from "./palette";
-import { splitPinned } from "./sections";
+import { buildSections } from "./sections";
 import { isSortedByOrderAsc } from "./sortGuard";
 import { t } from "./t";
 import { estimateCardHeight, visibleIndices } from "./virtual";
@@ -68,7 +68,8 @@ export class CardWallView extends BasesView {
   private items = new Map<string, Item>();
   /** Pinned cards first, then the rest; each group in display order. */
   private displayOrder: string[] = [];
-  private pinnedCount = 0;
+  /** Consecutive slices of displayOrder: Pinned, then one per group (or Notes). */
+  private sections: { label: string | null; start: number; end: number }[] = [];
   private headerEls: HTMLElement[] = [];
   /** Pin states we have just written; used until the metadata cache catches up. */
   private pinOverrides = new Map<string, boolean>();
@@ -158,10 +159,22 @@ export class CardWallView extends BasesView {
     const pinnedProperty = this.pinnedProperty();
     const colorProperty = this.colorProperty();
 
-    const files = this.data.data.map((entry) => entry.file);
+    // A note can show up in more than one group; the first one wins.
+    const groups = this.data.groupedData;
+    const files: TFile[] = [];
+    const groupFiles: TFile[][] = [];
     const live = new Set<string>();
+    for (const group of groups) {
+      const mine: TFile[] = [];
+      for (const entry of group.entries) {
+        if (live.has(entry.file.path)) continue;
+        live.add(entry.file.path);
+        files.push(entry.file);
+        mine.push(entry.file);
+      }
+      groupFiles.push(mine);
+    }
     for (const file of files) {
-      live.add(file.path);
       const previous = this.items.get(file.path);
       this.items.set(file.path, {
         file,
@@ -186,13 +199,33 @@ export class CardWallView extends BasesView {
     }
 
     this.orders = new Map(files.map((f) => [f.path, this.readOrder(f, orderProperty)]));
-    let list = files.map((f) => ({ id: f.path, order: this.orders.get(f.path) ?? null }));
-    if (sortedByOrder) list = sortByOrder(list);
-    const split = splitPinned(list.map((item) => ({ id: item.id, pinned: this.items.get(item.id)?.pinned ?? false })));
-    this.displayOrder = [...split.pinned, ...split.others];
-    this.pinnedCount = split.pinned.length;
+    const byOrder = (fs: TFile[]) => {
+      const list = fs.map((f) => ({ id: f.path, order: this.orders.get(f.path) ?? null }));
+      return (sortedByOrder ? sortByOrder(list) : list).map((item) => item.id);
+    };
+    const grouped = groups.some((g) => g.hasKey());
+    const plans = grouped
+      ? groups.map((g, i) => ({
+          label: g.hasKey() ? (g.key?.toString() ?? "") : t("section.noValue"),
+          ids: byOrder(groupFiles[i]),
+        }))
+      : [{ label: null, ids: byOrder(files) }];
+    const pinned = new Set(files.filter((f) => this.items.get(f.path)?.pinned).map((f) => f.path));
+    const built = buildSections(plans, pinned, { pinned: t("section.pinned"), notes: t("section.others") });
+    // By construction the Pinned section comes first when anything is pinned; it gathers pins from all groups.
+    if (sortedByOrder && pinned.size > 0) {
+      built[0].ids = sortByOrder(built[0].ids.map((id) => ({ id, order: this.orders.get(id) ?? null }))).map((i) => i.id);
+    }
+    this.displayOrder = built.flatMap((s) => s.ids);
+    let start = 0;
+    this.sections = built.map((s) => {
+      const section = { label: s.label, start, end: start + s.ids.length };
+      start = section.end;
+      return section;
+    });
 
-    const needsInit = sortedByOrder && needsInitialization(list.map((item) => item.order));
+    const needsInit =
+      sortedByOrder && needsInitialization(this.displayOrder.map((id) => this.orders.get(id) ?? null));
     this.dragEnabled = sortedByOrder && !needsInit;
     this.renderHint(sortedByOrder, needsInit, orderProperty, files.length);
     this.emptyEl.toggle(files.length === 0);
@@ -280,12 +313,8 @@ export class CardWallView extends BasesView {
     this.hs = this.displayOrder.map(
       (path) => this.measured.get(path) ?? estimateCardHeight(this.items.get(path)?.file.stat.size ?? 0, colWidth, maxBody),
     );
-    const labelled = this.pinnedCount > 0;
     const placed = placeSections(
-      [
-        { label: labelled ? t("section.pinned") : null, heights: this.hs.slice(0, this.pinnedCount) },
-        { label: labelled ? t("section.others") : null, heights: this.hs.slice(this.pinnedCount) },
-      ],
+      this.sections.map((s) => ({ label: s.label, heights: this.hs.slice(s.start, s.end) })),
       cols,
       colWidth,
       GAP,
@@ -598,10 +627,14 @@ export class CardWallView extends BasesView {
     const from = this.displayOrder.indexOf(this.dragPath);
     const to = this.displayOrder.indexOf(targetPath);
     if (from < 0 || to < 0) return;
-    if (from < this.pinnedCount !== to < this.pinnedCount) return; // cards stay in their own group
+    if (this.sectionIndexAt(from) !== this.sectionIndexAt(to)) return; // cards stay in their own section
     this.displayOrder = moveItem(this.displayOrder, from, to);
     this.lockUntil = Date.now() + SWAP_LOCK_MS;
     this.layoutAll();
+  }
+
+  private sectionIndexAt(index: number): number {
+    return this.sections.findIndex((s) => index >= s.start && index < s.end);
   }
 
   private async onDragEnd(): Promise<void> {
@@ -617,7 +650,8 @@ export class CardWallView extends BasesView {
         return;
       }
       const index = this.displayOrder.indexOf(path);
-      const group = index < this.pinnedCount ? this.displayOrder.slice(0, this.pinnedCount) : this.displayOrder.slice(this.pinnedCount);
+      const section = this.sections[this.sectionIndexAt(index)];
+      const group = this.displayOrder.slice(section.start, section.end);
       const list = group.map((id) => ({ id, order: this.orders.get(id) ?? null }));
       await this.writeOrders(planWrites(list, path));
     } catch (err) {

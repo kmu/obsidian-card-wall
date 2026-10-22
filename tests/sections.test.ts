@@ -1,21 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { splitPinned } from "../src/sections";
 import { placeSections } from "../src/masonry";
-
-describe("splitPinned", () => {
-  it("separates pinned from the rest and keeps each group's order", () => {
-    const items = [
-      { id: "a", pinned: false },
-      { id: "b", pinned: true },
-      { id: "c", pinned: false },
-      { id: "d", pinned: true },
-    ];
-    expect(splitPinned(items)).toEqual({ pinned: ["b", "d"], others: ["a", "c"] });
-  });
-  it("returns empty groups for no items", () => {
-    expect(splitPinned([])).toEqual({ pinned: [], others: [] });
-  });
-});
 
 describe("placeSections", () => {
   // args: sections, cols, colWidth, gap, headerHeight, sectionGap
@@ -55,5 +39,53 @@ describe("placeSections", () => {
   });
   it("handles nothing at all", () => {
     expect(placeSections([], 3, 100, 10, 20, 30)).toEqual({ xs: [], ys: [], headers: [], totalHeight: 0 });
+  });
+});
+
+import { buildSections } from "../src/sections";
+
+describe("buildSections", () => {
+  const labels = { pinned: "Pinned", notes: "Notes" };
+
+  it("is one unlabeled section when nothing is pinned or grouped", () => {
+    expect(buildSections([{ label: null, ids: ["a", "b"] }], new Set(), labels)).toEqual([{ label: null, ids: ["a", "b"] }]);
+  });
+  it("splits Pinned and Notes when something is pinned and nothing is grouped", () => {
+    expect(buildSections([{ label: null, ids: ["a", "b", "c"] }], new Set(["b"]), labels)).toEqual([
+      { label: "Pinned", ids: ["b"] },
+      { label: "Notes", ids: ["a", "c"] },
+    ]);
+  });
+  it("gives each group its own labeled section", () => {
+    const groups = [
+      { label: "Work", ids: ["a", "b"] },
+      { label: "Home", ids: ["c"] },
+    ];
+    expect(buildSections(groups, new Set(), labels)).toEqual(groups);
+  });
+  it("collects pins from every group into one section on top, keeping group order", () => {
+    const groups = [
+      { label: "Work", ids: ["a", "b"] },
+      { label: "Home", ids: ["c", "d"] },
+    ];
+    expect(buildSections(groups, new Set(["b", "c"]), labels)).toEqual([
+      { label: "Pinned", ids: ["b", "c"] },
+      { label: "Work", ids: ["a"] },
+      { label: "Home", ids: ["d"] },
+    ]);
+  });
+  it("drops a group whose notes are all pinned", () => {
+    const groups = [
+      { label: "Work", ids: ["a"] },
+      { label: "Home", ids: ["c"] },
+    ];
+    expect(buildSections(groups, new Set(["a"]), labels)).toEqual([
+      { label: "Pinned", ids: ["a"] },
+      { label: "Home", ids: ["c"] },
+    ]);
+  });
+  it("skips empty groups and handles no notes at all", () => {
+    expect(buildSections([{ label: "Work", ids: [] }], new Set(), labels)).toEqual([]);
+    expect(buildSections([], new Set(), labels)).toEqual([]);
   });
 });
