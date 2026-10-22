@@ -1,6 +1,6 @@
 {
   "name": "obsidian-card-wall",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A Bases view that shows notes as a packed wall of cards, with drag-to-reorder, pins and colors",
   "main": "main.js",
   "scripts": {
