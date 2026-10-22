@@ -36,7 +36,42 @@ Drag and drop uses the browser's drag events, so reordering is not available on 
 
 ## Install
 
-Until the plugin is in the community list, copy `main.js`, `manifest.json` and `styles.css` from a [release](https://github.com/kmu/obsidian-card-wall/releases) into `<your vault>/.obsidian/plugins/card-wall/`, then enable **Card Wall** in Settings → Community plugins. Requires Obsidian 1.10.0 or later (Bases custom views).
+Card Wall needs Obsidian 1.10.0 or later (Bases custom views). Until it is in the community plugin list, install it from a release.
+
+### From a release, by hand
+
+1. Open the [latest release](https://github.com/kmu/obsidian-card-wall/releases/latest) and download three files: `main.js`, `manifest.json` and `styles.css`.
+2. In your vault's folder, make the folder `.obsidian/plugins/card-wall/`. The name must be `card-wall`. `.obsidian` is hidden: press `Cmd+Shift+.` in the macOS Finder, turn on *Hidden items* in the Windows Explorer View menu, or press `Ctrl+H` in most Linux file managers.
+3. Put the three files in that folder.
+4. In Obsidian open **Settings → Community plugins**. If *Restricted mode* is on, turn it off. Press the reload icon next to *Installed plugins* (or restart Obsidian), then switch **Card Wall** on.
+
+### From a release, in a terminal
+
+Run this from inside your vault (macOS and Linux; on Windows use Git Bash or WSL):
+
+```sh
+mkdir -p .obsidian/plugins/card-wall && cd .obsidian/plugins/card-wall
+for f in main.js manifest.json styles.css; do
+  curl -fsSLO "https://github.com/kmu/obsidian-card-wall/releases/latest/download/$f"
+done
+```
+
+Then enable the plugin as in step 4 above.
+
+### Update
+
+Download the three files again over the old ones, then restart Obsidian (or switch the plugin off and on). Your notes are untouched: the plugin keeps no data of its own, only the `order`, `pinned` and `color` lines in your notes' frontmatter, and the options saved in your Base files.
+
+### Check that it works
+
+1. Create a Base and add a view; **Card Wall** should be in the list of view types.
+2. Choose it. Your notes appear as cards.
+
+If Card Wall is missing from the list, check that the folder is exactly `<vault>/.obsidian/plugins/card-wall/`, that it holds all three files, and that the plugin is switched on.
+
+### Uninstall
+
+Switch the plugin off, then delete the `card-wall` folder. Lines it wrote to your notes (`order`, `pinned`, `color`) stay; they are ordinary properties.
 
 ## Development
 
