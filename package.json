@@ -1,7 +1,7 @@
 {
   "name": "obsidian-card-wall",
   "version": "0.1.0",
-  "description": "Keep-style masonry card view for Obsidian Bases with drag-to-reorder",
+  "description": "A Bases view that shows notes as a packed wall of cards, with drag-to-reorder, pins and colors",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
