@@ -5,6 +5,7 @@ import { columnGeometry, placeSections } from "./masonry";
 import { moveItem } from "./move";
 import { needsInitialization, parseOrder, planWrites, sortByOrder } from "./order";
 import { ColorName, PALETTE, parseColor } from "./palette";
+import { recallScroll, rememberScroll } from "./scrollMemory";
 import { buildSections } from "./sections";
 import { isSortedByOrderAsc } from "./sortGuard";
 import { t } from "./t";
@@ -90,7 +91,11 @@ export class CardWallView extends BasesView {
   private windowQueued = false;
   private wallObserver: ResizeObserver;
   private cardObserver: ResizeObserver;
-  private onScroll = () => this.scheduleWindow();
+  private scrollRestored = false;
+  private onScroll = () => {
+    this.scheduleWindow();
+    if (this.scrollRestored) this.saveScroll();
+  };
 
   private orders = new Map<string, number | null>();
   /** Values we have just written; used until the metadata cache catches up. */
@@ -135,6 +140,28 @@ export class CardWallView extends BasesView {
       this.dropped = true;
     });
     this.wall.addEventListener("dragend", () => void this.onDragEnd());
+  }
+
+  /** Which Base view this is, so a rebuilt view can find where it was scrolled to. */
+  private scrollKey(): string | null {
+    let path = null as string | null;
+    this.app.workspace.iterateAllLeaves((leaf) => {
+      const file = (leaf.view as { file?: TFile }).file;
+      if (path === null && file && leaf.view.containerEl.contains(this.root)) path = file.path;
+    });
+    return path === null ? null : `${path}|${this.config.name}`;
+  }
+
+  private saveScroll() {
+    const key = this.scrollKey();
+    if (key && this.scroller) rememberScroll(key, this.scroller.scrollTop);
+  }
+
+  private restoreScroll() {
+    this.scrollRestored = true;
+    const key = this.scrollKey();
+    const top = key ? recallScroll(key) : undefined;
+    if (top !== undefined && this.scroller && this.scroller.scrollTop === 0) this.scroller.scrollTop = top;
   }
 
   onunload(): void {
@@ -325,6 +352,7 @@ export class CardWallView extends BasesView {
     this.ys = placed.ys;
     this.renderHeaders(placed.headers);
     this.wall.style.height = `${placed.totalHeight}px`;
+    if (!this.scrollRestored && placed.totalHeight > 0) this.restoreScroll();
 
     if (anchor) {
       const index = this.displayOrder.indexOf(anchor.path);
