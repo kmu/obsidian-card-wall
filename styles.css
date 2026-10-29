@@ -181,3 +181,5 @@
 }
 .cw-palette .cw-swatch[class*="cw-color-"] { border-color: color-mix(in srgb, var(--cw-hue) 45%, var(--background-modifier-border)); }
 .cw-palette .cw-swatch.is-current { outline: 2px solid var(--interactive-accent); outline-offset: 1px; }
+.cw-full-where { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; color: var(--text-muted); font-size: var(--font-ui-small); }
+.cw-full-folder { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

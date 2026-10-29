@@ -1,12 +1,15 @@
-import { App, ButtonComponent, Component, MarkdownRenderer, Modal, TFile } from "obsidian";
+import { App, ButtonComponent, Component, MarkdownRenderer, Modal, Notice, TFile } from "obsidian";
 import { enableTasks, readBody, toggleTaskFromClick } from "./card";
 import { replaceBody, splitFrontmatter } from "./edit";
+import { FolderPickModal } from "./folderPick";
+import { foldersToOffer, targetPath } from "./folderMove";
 import { t } from "./t";
 
 const SAVE_DELAY_MS = 600;
 
 class FullViewModal extends Modal {
   private component = new Component();
+  private folderEl!: HTMLElement;
   private bodyEl!: HTMLElement;
   private actionsEl!: HTMLElement;
   private statusEl!: HTMLElement;
@@ -23,6 +26,10 @@ class FullViewModal extends Modal {
     this.component.load();
     contentEl.addClass("cw-full");
     this.setTitle(this.file.basename);
+    const where = contentEl.createDiv({ cls: "cw-full-where" });
+    this.folderEl = where.createSpan({ cls: "cw-full-folder" });
+    new ButtonComponent(where).setButtonText(t("full.move")).onClick(() => this.pickFolder());
+    this.showFolder();
     this.bodyEl = contentEl.createDiv({ cls: "cw-full-body markdown-rendered" });
     this.actionsEl = contentEl.createDiv({ cls: "cw-full-actions" });
 
@@ -40,6 +47,33 @@ class FullViewModal extends Modal {
     });
 
     await this.showRendered();
+  }
+
+  private showFolder() {
+    const path = this.file.parent?.path ?? "/";
+    this.folderEl.setText(path === "/" ? t("full.root") : path);
+  }
+
+  private pickFolder() {
+    const all = this.app.vault.getAllFolders(true).map((f) => f.path);
+    new FolderPickModal(this.app, foldersToOffer(all, this.file.parent?.path ?? "/"), (folder) => void this.moveTo(folder)).open();
+  }
+
+  private async moveTo(folder: string) {
+    const name = this.file.name;
+    const path = targetPath(folder, name);
+    if (this.app.vault.getAbstractFileByPath(path)) {
+      new Notice(t("full.moveExists", { name, folder: folder === "/" ? t("full.root") : folder }));
+      return;
+    }
+    try {
+      await this.app.fileManager.renameFile(this.file, path);
+      this.showFolder();
+      new Notice(t("full.moved", { folder: folder === "/" ? t("full.root") : folder }));
+    } catch (err) {
+      console.error("Card Wall: could not move note", err);
+      new Notice(t("full.moveFailed"));
+    }
   }
 
   private buttons(...specs: { text: string; cta?: boolean; run: () => void }[]) {
