@@ -1,4 +1,5 @@
 import { App, Component, MarkdownRenderer, TFile, setIcon } from "obsidian";
+import { PropRow } from "./cardProps";
 import { toggleNthTask } from "./edit";
 import { ColorName, PALETTE } from "./palette";
 import { t } from "./t";
@@ -58,6 +59,7 @@ export function createCardShell(parent: HTMLElement, file: TFile, maxBodyHeight:
   const card = parent.createDiv({ cls: "cw-card" });
   card.dataset.path = file.path;
   card.createDiv({ cls: "cw-title", text: file.basename });
+  card.createDiv({ cls: "cw-props" });
   const body = card.createDiv({ cls: "cw-body markdown-rendered" });
   body.style.maxHeight = `${maxBodyHeight}px`;
 
@@ -69,6 +71,19 @@ export function createCardShell(parent: HTMLElement, file: TFile, maxBodyHeight:
   const pin = actions.createEl("button", { cls: "cw-pin clickable-icon", attr: { "aria-label": t("card.pin") } });
   setIcon(pin, "pin");
   return card;
+}
+
+/** Shows the Base's chosen properties between the title and the body; hidden when there are none. */
+export function setCardProps(card: HTMLElement, rows: PropRow[]): void {
+  const box = card.querySelector<HTMLElement>(".cw-props");
+  if (!box) return;
+  box.empty();
+  box.toggle(rows.length > 0);
+  for (const row of rows) {
+    const line = box.createDiv({ cls: "cw-prop" });
+    line.createSpan({ cls: "cw-prop-label", text: row.label });
+    line.createSpan({ cls: "cw-prop-value", text: row.text });
+  }
 }
 
 const children = new WeakMap<HTMLElement, Component>();

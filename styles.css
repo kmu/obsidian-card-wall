@@ -30,6 +30,24 @@
   line-height: 1.4;
   color: var(--text-normal);
 }
+.cw-props {
+  margin-bottom: 6px;
+  font-size: var(--font-ui-smaller);
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+.cw-prop {
+  display: flex;
+  gap: 6px;
+}
+.cw-prop-label {
+  flex: none;
+  color: var(--text-faint);
+}
+.cw-prop-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .cw-body {
   position: relative;
   overflow: hidden;

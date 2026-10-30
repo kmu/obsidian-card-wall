@@ -1,5 +1,6 @@
-import { BasesAllOptions, BasesView, Notice, QueryController, TFile } from "obsidian";
-import { applyColor, createCardShell, fillCard, releaseCard, toggleTaskFromClick, updateClipped } from "./card";
+import { BasesAllOptions, BasesEntry, BasesPropertyId, BasesView, Notice, NullValue, QueryController, TFile } from "obsidian";
+import { applyColor, createCardShell, setCardProps, fillCard, releaseCard, toggleTaskFromClick, updateClipped } from "./card";
+import { PropRow, propertyRows } from "./cardProps";
 import { openFullView } from "./fullView";
 import { columnGeometry, placeSections } from "./masonry";
 import { moveItem } from "./move";
@@ -36,6 +37,7 @@ interface Item {
   mtime: number;
   pinned: boolean;
   color: ColorName | null;
+  props: PropRow[];
 }
 
 interface Mounted {
@@ -44,6 +46,7 @@ interface Mounted {
   y: number;
   pinned: boolean;
   color: ColorName | null;
+  propsKey: string;
 }
 
 const WINDOW_MARGIN = 1500;
@@ -108,6 +111,7 @@ export class CardWallView extends BasesView {
   private writing = false;
   private pendingUpdate = false;
   private lastOrderProperty = "";
+  private lastPropertiesKey = "";
 
   constructor(controller: QueryController, parentEl: HTMLElement) {
     super(controller);
@@ -115,6 +119,7 @@ export class CardWallView extends BasesView {
     this.hintEl = this.root.createDiv({ cls: "cw-hint" });
     this.emptyEl = this.root.createDiv({ cls: "cw-empty", text: t("wall.empty") });
     this.wall = this.root.createDiv({ cls: "cw-wall" });
+    this.registerInterval(window.setInterval(() => this.checkProperties(), 400));
 
     this.wallObserver = new ResizeObserver(() => this.scheduleLayout());
     this.wallObserver.observe(this.wall);
@@ -164,6 +169,12 @@ export class CardWallView extends BasesView {
     if (top !== undefined && this.scroller && this.scroller.scrollTop === 0) this.scroller.scrollTop = top;
   }
 
+  /** Bases does not call onDataUpdated when only the Properties menu changes, so look for it. */
+  private checkProperties(): void {
+    if (this.writing || this.dragPath) return;
+    if (JSON.stringify(this.config.getOrder()) !== this.lastPropertiesKey) this.onDataUpdated();
+  }
+
   onunload(): void {
     this.closePalette?.();
     this.wallObserver.disconnect();
@@ -177,6 +188,7 @@ export class CardWallView extends BasesView {
       return;
     }
     const started = performance.now();
+    this.lastPropertiesKey = JSON.stringify(this.config.getOrder());
     const orderProperty = this.orderProperty();
     if (orderProperty !== this.lastOrderProperty) {
       this.overrides.clear();
@@ -189,6 +201,7 @@ export class CardWallView extends BasesView {
     // A note can show up in more than one group; the first one wins.
     const groups = this.data.groupedData;
     const files: TFile[] = [];
+    const entries = new Map<string, BasesEntry>();
     const groupFiles: TFile[][] = [];
     const live = new Set<string>();
     for (const group of groups) {
@@ -197,6 +210,7 @@ export class CardWallView extends BasesView {
         if (live.has(entry.file.path)) continue;
         live.add(entry.file.path);
         files.push(entry.file);
+        entries.set(entry.file.path, entry);
         mine.push(entry.file);
       }
       groupFiles.push(mine);
@@ -209,6 +223,7 @@ export class CardWallView extends BasesView {
         mtime: file.stat.mtime,
         pinned: this.readPinned(file, pinnedProperty),
         color: this.readColor(file, colorProperty),
+        props: this.readProps(entries.get(file.path)),
       });
       const card = this.mounted.get(file.path);
       if (card && previous && previous.mtime !== file.stat.mtime) {
@@ -441,6 +456,11 @@ export class CardWallView extends BasesView {
         card.color = item.color;
         applyColor(card.el, item.color);
       }
+      const propsKey = JSON.stringify(item.props);
+      if (card.propsKey !== propsKey) {
+        card.propsKey = propsKey;
+        setCardProps(card.el, item.props);
+      }
       if (card.x !== this.xs[i] || card.y !== this.ys[i]) {
         card.x = this.xs[i];
         card.y = this.ys[i];
@@ -470,7 +490,15 @@ export class CardWallView extends BasesView {
     });
     el.toggleClass("cw-pinned", item.pinned);
     applyColor(el, item.color);
-    const card: Mounted = { el, x: Number.NaN, y: Number.NaN, pinned: item.pinned, color: item.color };
+    setCardProps(el, item.props);
+    const card: Mounted = {
+      el,
+      x: Number.NaN,
+      y: Number.NaN,
+      pinned: item.pinned,
+      color: item.color,
+      propsKey: JSON.stringify(item.props),
+    };
     this.mounted.set(path, card);
     this.cardObserver.observe(el);
     void fillCard(this.app, el, item.file, this);
@@ -484,6 +512,18 @@ export class CardWallView extends BasesView {
     releaseCard(this, card.el);
     card.el.remove();
     this.mounted.delete(path);
+  }
+
+  private readProps(entry: BasesEntry | undefined): PropRow[] {
+    if (!entry) return [];
+    return propertyRows(
+      this.config.getOrder(),
+      (id) => this.config.getDisplayName(id as BasesPropertyId),
+      (id) => {
+        const v = entry.getValue(id as BasesPropertyId);
+        return v === null || v instanceof NullValue ? null : v.toString();
+      },
+    );
   }
 
   private orderProperty(): string {
