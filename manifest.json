@@ -1,7 +1,7 @@
 {
   "id": "card-wall",
   "name": "Card Wall",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "minAppVersion": "1.10.0",
   "description": "Show the notes of a Base as a packed wall of cards. Drag to reorder, pin, color, tick tasks and edit text without leaving the view.",
   "author": "Koki Muraoka",
